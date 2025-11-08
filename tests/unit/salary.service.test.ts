@@ -68,32 +68,36 @@ describe('SalaryService', () => {
       expect(tax).toBeGreaterThan(0);
       expect(tax).toBeLessThan(100000000); // Tax should be less than gross
     });
+    it('should return 0 tax for countries without tax brackets', () => {
+      const tax = salaryService.calculateTax(100000, 'XX');
+      expect(tax).toBe(0);
+    });
   });
 
   describe('calculateInsurance', () => {
     it('should calculate 5% insurance for salary under cap', () => {
       // $100,000 = 10,000,000 cents
       // 5% = $5,000 = 500,000 cents (under $10,000 cap)
-      const insurance = salaryService.calculateInsurance(10000000);
+      const insurance = salaryService.calculateInsurance(10000000, 'US');
       expect(insurance).toBe(500000);
     });
 
     it('should cap insurance at $10,000', () => {
       // $300,000 = 30,000,000 cents
       // 5% would be $15,000, but capped at $10,000 = 1,000,000 cents
-      const insurance = salaryService.calculateInsurance(30000000);
+      const insurance = salaryService.calculateInsurance(30000000, 'US');
       expect(insurance).toBe(1000000);
     });
 
     it('should handle zero salary', () => {
-      const insurance = salaryService.calculateInsurance(0);
+      const insurance = salaryService.calculateInsurance(0, 'US');
       expect(insurance).toBe(0);
     });
 
     it('should use integer division', () => {
       // $10,003 = 1,000,300 cents
       // 5% = 50,015 cents, floor = 50,015 cents
-      const insurance = salaryService.calculateInsurance(1000300);
+      const insurance = salaryService.calculateInsurance(1000300, 'US');
       expect(insurance).toBe(50015);
     });
   });
@@ -102,19 +106,19 @@ describe('SalaryService', () => {
     it('should calculate 3% retirement for salary under cap', () => {
       // $100,000 = 10,000,000 cents
       // 3% = $3,000 = 300,000 cents (under $5,000 cap)
-      const retirement = salaryService.calculateRetirement(10000000);
+      const retirement = salaryService.calculateRetirement(10000000, 'US');
       expect(retirement).toBe(300000);
     });
 
     it('should cap retirement at $5,000', () => {
       // $200,000 = 20,000,000 cents
       // 3% would be $6,000, but capped at $5,000 = 500,000 cents
-      const retirement = salaryService.calculateRetirement(20000000);
+      const retirement = salaryService.calculateRetirement(20000000, 'US');
       expect(retirement).toBe(500000);
     });
 
     it('should handle zero salary', () => {
-      const retirement = salaryService.calculateRetirement(0);
+      const retirement = salaryService.calculateRetirement(0, 'US');
       expect(retirement).toBe(0);
     });
   });
@@ -162,6 +166,29 @@ describe('SalaryService', () => {
         expect(deduction.percentage).toBeLessThanOrEqual(100);
       });
     });
+     it('should handle minimum salary (1 cent)', () => {
+      const details = salaryService.calculateSalaryDetails(1, 'US');
+      expect(details.grossSalaryCents).toBe(1);
+      expect(details.totalDeductionsCents).toBeGreaterThanOrEqual(0);
+      expect(details.netSalaryCents).toBeLessThanOrEqual(1);
+    });
+
+    it('should handle negative salary by treating as zero', () => {
+      const details = salaryService.calculateSalaryDetails(-1000, 'US');
+      expect(details.grossSalaryCents).toBe(0);
+      expect(details.totalDeductionsCents).toBe(0);
+      expect(details.netSalaryCents).toBe(0);
+    });
+
+    it('should handle maximum safe integer salary', () => {
+      const maxSafe = Number.MAX_SAFE_INTEGER;
+      const details = salaryService.calculateSalaryDetails(maxSafe, 'US');
+      expect(details.grossSalaryCents).toBe(maxSafe);
+      expect(details.totalDeductionsCents).toBeGreaterThan(0);
+      expect(details.netSalaryCents).toBeLessThan(maxSafe);
+    });
+
+
   });
 
   describe('formatCentsAsDollars', () => {
