@@ -142,7 +142,7 @@ export class EmployeeController {
    * Get salary metrics grouped by country
    */
   getMetricsByCountry = async (
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
@@ -163,7 +163,7 @@ export class EmployeeController {
    * Get salary metrics grouped by job title
    */
   getMetricsByJobTitle = async (
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
@@ -184,12 +184,12 @@ export class EmployeeController {
    * Get combined salary metrics with optional filters
    */
   getSalaryMetrics = async (
-    req: Request,
+    _req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { country, jobTitle } = req.query;
+      const { country, jobTitle } = _req.query;
       
       const metrics = await this.employeeService.getSalaryMetrics({
         country: country as string | undefined,

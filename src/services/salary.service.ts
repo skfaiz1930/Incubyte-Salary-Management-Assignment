@@ -144,52 +144,48 @@ export class SalaryService {
    * //   netSalaryCents: 7220000
    * // }
    */
-  calculateSalaryDetails(grossSalaryCents: number, country: CountryCode): SalaryDetails {
-    const hasDeductions = hasTaxDeductions(country);
-    
-    // Calculate each deduction
-    const taxCents = this.calculateTax(grossSalaryCents, country);
-    const insuranceCents = this.calculateInsurance(grossSalaryCents, country);
-    const retirementCents = this.calculateRetirement(grossSalaryCents, country);
+ calculateSalaryDetails(
+  grossSalaryCents: number,
+  country: CountryCode
+): SalaryDetails {
+  // Convert negative salary to 0
+  const effectiveSalary = Math.max(0, grossSalaryCents);
+  
+  const tax = this.calculateTax(effectiveSalary, country);
+  const insurance = this.calculateInsurance(effectiveSalary, country);
+  const retirement = this.calculateRetirement(effectiveSalary, country);
 
-    // Calculate percentages for display
-    const taxPercentage = hasDeductions ? (taxCents / grossSalaryCents) * 100 : 0;
-    const insurancePercentage = hasDeductions ? (insuranceCents / grossSalaryCents) * 100 : 0;
-    const retirementPercentage = hasDeductions ? (retirementCents / grossSalaryCents) * 100 : 0;
+  const totalDeductionsCents = tax + insurance + retirement;
+  const netSalaryCents = effectiveSalary - totalDeductionsCents;
 
-    // Build deductions array
-    const deductions: Deduction[] = [
-      {
-        type: DeductionType.TAX,
-        amountCents: taxCents,
-        percentage: Math.round(taxPercentage * 100) / 100, // Round to 2 decimals
-        description: `Progressive income tax based on ${country} tax brackets`,
-      },
-      {
-        type: DeductionType.INSURANCE,
-        amountCents: insuranceCents,
-        percentage: Math.round(insurancePercentage * 100) / 100,
-        description: `Health insurance (${INSURANCE_RATE}% of gross, max $${INSURANCE_CAP_CENTS / 100}/year)`,
-      },
-      {
-        type: DeductionType.RETIREMENT,
-        amountCents: retirementCents,
-        percentage: Math.round(retirementPercentage * 100) / 100,
-        description: `Retirement contribution (${RETIREMENT_RATE}% of gross, max $${RETIREMENT_CAP_CENTS / 100}/year)`,
-      },
-    ];
+  const deductions: Deduction[] = [
+    {
+      type: DeductionType.TAX,
+      amountCents: tax,
+      percentage: effectiveSalary > 0 ? (tax / effectiveSalary) * 100 : 0,
+      description: 'Progressive income tax based on tax brackets',
+    },
+    {
+      type: DeductionType.INSURANCE,
+      amountCents: insurance,
+      percentage: effectiveSalary > 0 ? (insurance / effectiveSalary) * 100 : 0,
+      description: 'Health insurance (5% of gross, max $10000/year)',
+    },
+    {
+      type: DeductionType.RETIREMENT,
+      amountCents: retirement,
+      percentage: effectiveSalary > 0 ? (retirement / effectiveSalary) * 100 : 0,
+      description: 'Retirement contribution (3% of gross, max $5000/year)',
+    },
+  ];
 
-    // Calculate totals
-    const totalDeductionsCents = taxCents + insuranceCents + retirementCents;
-    const netSalaryCents = grossSalaryCents - totalDeductionsCents;
-
-    return {
-      grossSalaryCents,
-      deductions,
-      totalDeductionsCents,
-      netSalaryCents,
-    };
-  }
+  return {
+    grossSalaryCents: effectiveSalary,
+    deductions,
+    totalDeductionsCents,
+    netSalaryCents,
+  };
+}
 
   /**
    * Convert cents to dollar string for display

@@ -159,10 +159,12 @@ export class EmployeeService {
    */
   async getEmployeeSalaryDetails(id: number): Promise<SalaryDetails> {
     const employee = await this.getEmployeeById(id);
-
+    // If country is not specified, default to a country with no deductions
+    const country = employee.country || 'XX';
+   
     return this.salaryService.calculateSalaryDetails(
       employee.grossSalaryCents,
-      employee.country
+      country
     );
   }
 
