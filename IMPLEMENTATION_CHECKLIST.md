@@ -178,14 +178,14 @@
 ## Phase 3: Models & Schemas 📝
 
 ### 3.1 Type Definitions
-- [ ] Create `src/models/employee.model.ts`
+- [x] Create `src/models/employee.model.ts`
   - Employee interface
   - EmployeeRow (DB representation)
   - CreateEmployeeDTO
   - UpdateEmployeeDTO
 
 ### 3.2 Validation Schemas
-- [ ] Create `src/schemas/employee.schema.ts`
+- [x] Create `src/schemas/employee.schema.ts`
   - createEmployeeSchema
   - updateEmployeeSchema
   - getEmployeeByIdSchema
@@ -194,49 +194,50 @@
 ## Phase 4: Repository Layer 💾
 
 ### 4.1 Employee Repository
-- [ ] Create `src/repositories/employee.repository.ts`
-- [ ] Implement methods:
-  - [ ] `create(data): Promise<EmployeeRow>`
-  - [ ] `findById(id): Promise<EmployeeRow | null>`
-  - [ ] `findAll(filters, pagination): Promise<EmployeeRow[]>`
-  - [ ] `findByEmail(email): Promise<EmployeeRow | null>`
-  - [ ] `update(id, data): Promise<EmployeeRow>`
-  - [ ] `delete(id): Promise<boolean>`
-  - [ ] `getSalaryMetricsByCountry(): Promise<Metric[]>`
-  - [ ] `getSalaryMetricsByJobTitle(): Promise<Metric[]>`
+- [x] Create `src/repositories/employee.repository.ts`
+- [x] Implement methods:
+  - [x] `create(data): Promise<EmployeeRow>`
+  - [x] `findById(id): Promise<EmployeeRow | null>`
+  - [x] `findAll(filters, pagination): Promise<EmployeeRow[]>`
+  - [x] `findByEmail(email): Promise<EmployeeRow | null>`
+  - [x] `update(id, data): Promise<EmployeeRow>`
+  - [x] `delete(id): Promise<boolean>`
+  - [x] `getSalaryMetricsByCountry(): Promise<Metric[]>`
+  - [x] `getSalaryMetricsByJobTitle(): Promise<Metric[]>`
+  - [x] `emailExists(email, excludeId): Promise<boolean>`
 
 ### 4.2 Repository Tests
-- [ ] Create `tests/unit/employee.repository.test.ts`
-- [ ] Test all CRUD operations
-- [ ] Test edge cases (not found, duplicates, etc.)
-- [ ] Test metrics calculations
+- [x] Create `tests/unit/employee.repository.test.ts`
+- [x] Test all CRUD operations
+- [x] Test edge cases (not found, duplicates, etc.)
+- [x] Test metrics calculations
 
 ## Phase 5: Service Layer 🔧
 
 ### 5.1 Employee Service
-- [ ] Create `src/services/employee.service.ts`
-- [ ] Implement business logic:
-  - [ ] Create employee (with validation)
-  - [ ] Get employee(s)
-  - [ ] Update employee
-  - [ ] Delete employee
-  - [ ] Check email uniqueness
+- [x] Create `src/services/employee.service.ts`
+- [x] Implement business logic:
+  - [x] Create employee (with validation)
+  - [x] Get employee(s)
+  - [x] Update employee
+  - [x] Delete employee
+  - [x] Check email uniqueness
 
 ### 5.2 Salary Service
-- [ ] Create `src/services/salary.service.ts`
-- [ ] Implement deduction rules:
-  - [ ] Tax calculation (progressive brackets)
-  - [ ] Insurance deduction
-  - [ ] Retirement deduction
-  - [ ] `calculateNetSalary(grossInCents, country): number`
-  - [ ] `getDeductionBreakdown(grossInCents, country): Deduction[]`
+- [x] Create `src/services/salary.service.ts`
+- [x] Implement deduction rules:
+  - [x] Tax calculation (progressive brackets)
+  - [x] Insurance deduction
+  - [x] Retirement deduction
+  - [x] `calculateNetSalary(grossInCents, country): number`
+  - [x] `getDeductionBreakdown(grossInCents, country): Deduction[]`
 
 ### 5.3 Service Tests
-- [ ] Create `tests/unit/employee.service.test.ts`
-- [ ] Create `tests/unit/salary.service.test.ts`
-- [ ] Test all business logic
-- [ ] Test edge cases and validations
-- [ ] Test salary calculations with various inputs
+- [x] Create `tests/unit/employee.service.test.ts`
+- [x] Create `tests/unit/salary.service.test.ts`
+- [x] Test all business logic
+- [x] Test edge cases and validations
+- [x] Test salary calculations with various inputs
 
 ## Phase 6: Controller Layer 🎮
 
