@@ -9,13 +9,14 @@
 import { app } from './app';
 import config from './config';
 import logger from './utils/logger';
-import { testConnection, closeConnection } from './config/database';
-
+import { initDb, testConnection, closeConnection } from './config/database';
 /**
  * Start the server
  */
 async function startServer(): Promise<void> {
   try {
+    // Initialize database
+    initDb();
     // Test database connection
     const dbConnected = await testConnection();
     if (!dbConnected) {

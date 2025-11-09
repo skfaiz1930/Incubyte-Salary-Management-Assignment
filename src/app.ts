@@ -22,7 +22,8 @@ import { EmployeeController } from './controllers/employee.controller';
 import { EmployeeService } from './services/employee.service';
 import { SalaryService } from './services/salary.service';
 import { EmployeeRepository } from './repositories/employee.repository';
-import db from './config/database';
+// import db from './config/database';
+import { getDb } from './config/database';
 
 /**
  * Create and configure Express application
@@ -69,7 +70,9 @@ export function createApp(): Application {
   // ======================
   // Dependency Injection
   // ======================
-
+  
+  // Get database instance
+  const db = getDb();
   // Initialize layers
   const employeeRepository = new EmployeeRepository(db);
   const salaryService = new SalaryService();

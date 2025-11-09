@@ -11,6 +11,11 @@ import config from './index';
 import logger from '../utils/logger';
 
 /**
+ * Global database instance
+ */
+let dbInstance: Knex | null = null;
+
+/**
  * Knex configuration based on environment
  */
 const knexConfig: Knex.Config = {
@@ -34,13 +39,40 @@ const knexConfig: Knex.Config = {
 /**
  * Initialize database connection
  */
-const db = knex(knexConfig);
+export function initDb(customConfig?: Knex.Config): Knex {
+  if (dbInstance) {
+    return dbInstance;
+  }
+
+  const configToUse = customConfig || knexConfig;
+  dbInstance = knex(configToUse);
+
+  return dbInstance;
+}
+
+/**
+ * Get current database instance
+ */
+export function getDb(): Knex {
+  if (!dbInstance) {
+    throw new Error('Database not initialized. Call initDb() first.');
+  }
+  return dbInstance;
+}
+
+/**
+ * Set database instance (mainly for testing)
+ */
+export function setDb(db: Knex): void {
+  dbInstance = db;
+}
 
 /**
  * Test database connection
  */
 export async function testConnection(): Promise<boolean> {
   try {
+    const db = getDb();
     await db.raw('SELECT 1');
     logger.info('Database connection established successfully');
     return true;
@@ -54,8 +86,21 @@ export async function testConnection(): Promise<boolean> {
  * Close database connection
  */
 export async function closeConnection(): Promise<void> {
-  await db.destroy();
-  logger.info('Database connection closed');
+  if (dbInstance) {
+    await dbInstance.destroy();
+    dbInstance = null;
+    logger.info('Database connection closed');
+  }
 }
 
-export default db;
+// Auto-initialize for non-test environments
+if (process.env.NODE_ENV !== 'test') {
+  initDb();
+}
+
+// Default export for backward compatibility
+export default {
+  get instance() {
+    return getDb();
+  },
+};
