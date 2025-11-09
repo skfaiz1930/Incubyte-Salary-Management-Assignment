@@ -182,6 +182,13 @@ describe('Employee API Integration Tests', () => {
       await request(app).post('/api/employees').send(validEmployeeData);
       await request(app).post('/api/employees').send(validEmployeeData2);
       await request(app).post('/api/employees').send(validEmployeeData3);
+      
+      // Create and soft delete an employee
+      const createResponse = await request(app).post('/api/employees').send({
+        ...validEmployeeData,
+        email: 'deleted@example.com'
+      });
+      await request(app).delete(`/api/employees/${createResponse.body.data.id}`);
     });
 
     it('should get all employees', async () => {
@@ -189,7 +196,11 @@ describe('Employee API Integration Tests', () => {
 
       expect(response.body.status).toBe('success');
       expect(response.body.data).toBeInstanceOf(Array);
-      expect(response.body.data.length).toBeGreaterThanOrEqual(3);
+      // Should only return non-deleted employees
+      expect(response.body.data.length).toBe(3);
+      // Verify no deleted employees are included
+      const deletedEmails = response.body.data.map((e: any) => e.email);
+      expect(deletedEmails).not.toContain('deleted@example.com');
       expect(response.body.pagination).toMatchObject({
         page: 1,
         limit: 10,
@@ -281,23 +292,82 @@ describe('Employee API Integration Tests', () => {
   });
 
   describe('DELETE /api/employees/:id', () => {
-    it('should delete employee', async () => {
+    it('should soft delete employee', async () => {
       // Create employee
       const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
-
       const employeeId = createResponse.body.data.id;
 
-      // Delete employee
+      // Soft delete employee
       await request(app).delete(`/api/employees/${employeeId}`).expect(204);
 
-      // Verify deleted
+      // Verify employee is not found in normal query
       await request(app).get(`/api/employees/${employeeId}`).expect(404);
+
+      // Verify employee exists in database with deletedAt set
+      const dbEmployee = await testDb('employees').where('id', employeeId).first();
+      expect(dbEmployee).toBeDefined();
+      expect(dbEmployee.deleted_at).not.toBeNull();
     });
 
     it('should return 404 for non-existent employee', async () => {
       const response = await request(app).delete('/api/employees/999999').expect(404);
-
       expect(response.body.status).toBe('error');
+    });
+  });
+
+  describe('POST /api/employees/:id/restore', () => {
+    it('should restore a soft-deleted employee', async () => {
+      // Create and soft delete an employee
+      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const employeeId = createResponse.body.data.id;
+      await request(app).delete(`/api/employees/${employeeId}`);
+
+      // Restore the employee
+      await request(app).post(`/api/employees/${employeeId}/restore`).expect(200);
+
+      // Verify employee is accessible again
+      const response = await request(app).get(`/api/employees/${employeeId}`).expect(200);
+      expect(response.body.data.id).toBe(employeeId);
+    });
+
+    it('should return 404 when restoring non-existent employee', async () => {
+      const response = await request(app).post('/api/employees/999999/restore').expect(404);
+      expect(response.body.status).toBe('error');
+    });
+  });
+
+  describe('DELETE /api/employees/:id/force', () => {
+    it('should permanently delete an employee', async () => {
+      // Create an employee
+      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const employeeId = createResponse.body.data.id;
+
+      // Permanently delete the employee
+      await request(app).delete(`/api/employees/${employeeId}/force`).expect(204);
+
+      // Verify employee is completely removed from database
+      const dbEmployee = await testDb('employees').where('id', employeeId).first();
+      expect(dbEmployee).toBeUndefined();
+    });
+  });
+
+  describe('GET /api/employees/deleted', () => {
+    it('should list all soft-deleted employees', async () => {
+      // Create and soft delete an employee
+      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const employeeId = createResponse.body.data.id;
+      await request(app).delete(`/api/employees/${employeeId}`);
+
+      // Get list of deleted employees
+      const response = await request(app).get('/api/employees/deleted').expect(200);
+      
+      expect(response.body.status).toBe('success');
+      expect(response.body.data).toContainEqual(
+        expect.objectContaining({
+          id: employeeId,
+          email: validEmployeeData.email
+        })
+      );
     });
   });
 

@@ -39,6 +39,7 @@ export class EmployeeService {
   async createEmployee(data: CreateEmployeeData): Promise<Employee> {
     // Check if email already exists
     const existingEmployee = await this.employeeRepository.findByEmail(data.email);
+
     if (existingEmployee) {
       throw new ConflictError(`Employee with email ${data.email} already exists`);
     }
@@ -53,8 +54,8 @@ export class EmployeeService {
    * @returns Employee record
    * @throws NotFoundError if employee not found
    */
-  async getEmployeeById(id: number): Promise<Employee> {
-    const employee = await this.employeeRepository.findById(id);
+  async getEmployeeById(id: number, includeDeleted = false): Promise<Employee> {
+    const employee = await this.employeeRepository.findById(id, includeDeleted);
 
     if (!employee) {
       throw new NotFoundError('Employee', id);
@@ -149,6 +150,43 @@ export class EmployeeService {
   }
 
   /**
+   * Restore a soft-deleted employee
+   *
+   * @param id - Employee ID to restore
+   * @returns True if restored, false if not found or not deleted
+   */
+  async restoreEmployee(id: number): Promise<boolean> {
+    return this.employeeRepository.restore(id);
+  }
+
+  /**
+   * Permanently delete an employee (hard delete)
+   * 
+   * @param id - Employee ID to permanently delete
+   * @returns True if deleted, false if not found
+   * @throws NotFoundError if employee not found (including already hard deleted)
+   */
+  async forceDeleteEmployee(id: number): Promise<boolean> {
+    // First check if employee exists (including soft-deleted)
+    const employee = await this.employeeRepository.findById(id, true);
+    
+    if (!employee) {
+      throw new NotFoundError('Employee', id);
+    }
+
+    return this.employeeRepository.forceDelete(id);
+  }
+
+  /**
+   * Get all soft-deleted employees
+   * 
+   * @returns Array of soft-deleted employees
+   */
+  async getDeletedEmployees(): Promise<Employee[]> {
+    return this.employeeRepository.findDeleted();
+  }
+
+  /**
    * Calculate salary details for an employee
    *
    * Retrieves employee and calculates complete salary breakdown with deductions
@@ -158,7 +196,7 @@ export class EmployeeService {
    * @throws NotFoundError if employee not found
    */
   async getEmployeeSalaryDetails(id: number): Promise<SalaryDetails> {
-    const employee = await this.getEmployeeById(id);
+    const employee = await this.getEmployeeById(id, false); // Don't include deleted employees
     // If country is not specified, default to a country with no deductions
     const country = employee.country || 'XX';
    
@@ -173,8 +211,8 @@ export class EmployeeService {
    *
    * @returns Array of country salary metrics
    */
-  async getSalaryMetricsByCountry(): Promise<CountrySalaryMetrics[]> {
-    return this.employeeRepository.getSalaryMetricsByCountry();
+  async getSalaryMetricsByCountry(country?: string): Promise<CountrySalaryMetrics[]> {
+    return this.employeeRepository.getSalaryMetricsByCountry(country);
   }
 
   /**
@@ -182,8 +220,8 @@ export class EmployeeService {
    *
    * @returns Array of job title salary metrics
    */
-  async getSalaryMetricsByJobTitle(): Promise<JobTitleSalaryMetrics[]> {
-    return this.employeeRepository.getSalaryMetricsByJobTitle();
+  async getSalaryMetricsByJobTitle(jobTitle?: string): Promise<JobTitleSalaryMetrics[]> {
+    return this.employeeRepository.getSalaryMetricsByJobTitle(jobTitle);
   }
 
   /**

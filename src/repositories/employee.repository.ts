@@ -30,12 +30,13 @@ export class EmployeeRepository {
    * @returns Created employee with generated ID
    */
   async create(data: CreateEmployeeData): Promise<Employee> {
-    const row: Omit<EmployeeRow, 'id' | 'created_at' | 'updated_at'> = {
+    const row: Omit<EmployeeRow, 'id' | 'created_at' | 'updated_at' | 'deleted_at'> & { deleted_at: null } = {
       name: data.name,
       email: data.email,
       job_title: data.jobTitle,
       country: data.country,
       gross_salary_cents: data.grossSalaryCents,
+      deleted_at: null, // Explicitly set to null for new records
     };
 
     const [id] = await this.db(this.tableName).insert(row);
@@ -54,9 +55,14 @@ export class EmployeeRepository {
    * @param id - Employee ID
    * @returns Employee record or null if not found
    */
-  async findById(id: number): Promise<Employee | null> {
-    const row = await this.db(this.tableName).where({ id }).first<EmployeeRow>();
-
+  async findById(id: number, includeDeleted = false): Promise<Employee | null> {
+    let query = this.db(this.tableName).where('id', id);
+    
+    if (!includeDeleted) {
+      query = query.whereNull('deleted_at');
+    }
+    
+    const row = await query.first<EmployeeRow>();
     return row ? rowToEmployee(row) : null;
   }
 
@@ -66,9 +72,14 @@ export class EmployeeRepository {
    * @param email - Employee email address
    * @returns Employee record or null if not found
    */
-  async findByEmail(email: string): Promise<Employee | null> {
-    const row = await this.db(this.tableName).where({ email }).first<EmployeeRow>();
-
+  async findByEmail(email: string, includeDeleted = false): Promise<Employee | null> {
+    let query = this.db(this.tableName).where('email', email);
+    
+    if (!includeDeleted) {
+      query = query.whereNull('deleted_at');
+    }
+    
+    const row = await query.first<EmployeeRow>();
     return row ? rowToEmployee(row) : null;
   }
 
@@ -87,7 +98,7 @@ export class EmployeeRepository {
     const { country, jobTitle, page = 1, limit = 10 } = options;
 
     // Build query with filters
-    let query = this.db(this.tableName);
+    let query = this.db(this.tableName).whereNull('deleted_at');
 
     if (country) {
       query = query.where({ country });
@@ -132,7 +143,10 @@ export class EmployeeRepository {
       updatedAt: new Date(),
     });
 
-    const updatedCount = await this.db(this.tableName).where({ id }).update(updateRow);
+    const updatedCount = await this.db(this.tableName)
+      .where({ id })
+      .whereNull('deleted_at')
+      .update(updateRow);
 
     if (updatedCount === 0) {
       return null;
@@ -148,7 +162,13 @@ export class EmployeeRepository {
    * @returns True if deleted, false if not found
    */
   async delete(id: number): Promise<boolean> {
-    const deletedCount = await this.db(this.tableName).where({ id }).delete();
+    const deletedCount = await this.db(this.tableName)
+      .where({ id })
+      .whereNull('deleted_at')
+      .update({
+        deleted_at: this.db.fn.now(),
+        updated_at: this.db.fn.now()
+      });
 
     return deletedCount > 0;
   }
@@ -165,6 +185,7 @@ export class EmployeeRepository {
       .min('gross_salary_cents as minSalaryCents')
       .max('gross_salary_cents as maxSalaryCents')
       .count('* as employeeCount')
+      .whereNull('deleted_at')
       .groupBy('country');
 
     if (country) {
@@ -194,6 +215,7 @@ export class EmployeeRepository {
       .min('gross_salary_cents as minSalaryCents')
       .max('gross_salary_cents as maxSalaryCents')
       .count('* as employeeCount')
+      .whereNull('deleted_at')
       .groupBy('job_title');
 
     if (jobTitle) {
@@ -227,5 +249,50 @@ export class EmployeeRepository {
 
     const row = await query.first();
     return !!row;
+  }
+
+  /**
+   * Find all soft-deleted employees
+   * 
+   * @returns Array of soft-deleted employees
+   */
+  async findDeleted(): Promise<Employee[]> {
+    const rows = await this.db(this.tableName)
+      .whereNotNull('deleted_at')
+      .select<EmployeeRow[]>('*');
+    
+    return rows.map(rowToEmployee);
+  }
+
+  /**
+   * Restore a soft-deleted employee
+   * 
+   * @param id - Employee ID to restore
+   * @returns True if restored, false if not found or not deleted
+   */
+  async restore(id: number): Promise<boolean> {
+    const updatedCount = await this.db(this.tableName)
+      .where({ id })
+      .whereNotNull('deleted_at')
+      .update({
+        deleted_at: null,
+        updated_at: this.db.fn.now()
+      });
+
+    return updatedCount > 0;
+  }
+
+  /**
+   * Permanently delete an employee (hard delete)
+   * 
+   * @param id - Employee ID to permanently delete
+   * @returns True if deleted, false if not found
+   */
+  async forceDelete(id: number): Promise<boolean> {
+    const deletedCount = await this.db(this.tableName)
+      .where({ id })
+      .delete();
+
+    return deletedCount > 0;
   }
 }

@@ -51,9 +51,27 @@ export function createEmployeeRoutes(controller: EmployeeController): Router {
 
   /**
    * DELETE /api/employees/:id
-   * Delete employee by ID
+   * Soft delete employee by ID (sets deleted_at timestamp)
    */
   router.delete('/:id', validate(employeeIdSchema), controller.delete);
+
+  /**
+   * POST /api/employees/:id/restore
+   * Restore a soft-deleted employee
+   */
+  router.post('/:id/restore', validate(employeeIdSchema), controller.restore);
+
+  /**
+   * DELETE /api/employees/:id/force
+   * Permanently delete an employee (hard delete)
+   */
+  router.delete('/:id/force', validate(employeeIdSchema), controller.forceDelete);
+
+  /**
+   * GET /api/employees/deleted
+   * Get all soft-deleted employees
+   */
+  router.get('/deleted', controller.getDeleted);
 
   /**
    * GET /api/employees/:id/salary

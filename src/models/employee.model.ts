@@ -25,6 +25,7 @@ export interface EmployeeRow {
   gross_salary_cents: number;
   created_at: Date;
   updated_at: Date;
+  deleted_at: Date | null;
 }
 
 /**
@@ -40,6 +41,7 @@ export interface Employee {
   grossSalaryCents: number;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
 }
 
 /**
@@ -80,6 +82,7 @@ export function rowToEmployee(row: EmployeeRow): Employee {
     grossSalaryCents: row.gross_salary_cents,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
   };
 }
 
@@ -98,6 +101,7 @@ export function employeeToRow(employee: Partial<Employee>): Partial<EmployeeRow>
   if (employee.grossSalaryCents !== undefined) row.gross_salary_cents = employee.grossSalaryCents;
   if (employee.createdAt !== undefined) row.created_at = employee.createdAt;
   if (employee.updatedAt !== undefined) row.updated_at = employee.updatedAt;
+  if (employee.deletedAt !== undefined) row.deleted_at = employee.deletedAt;
 
   return row;
 }
