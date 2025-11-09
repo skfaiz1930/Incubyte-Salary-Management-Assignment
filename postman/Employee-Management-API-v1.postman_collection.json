@@ -1,0 +1,267 @@
+{
+  "info": {
+    "name": "Salary Management API v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "A comprehensive API for managing employee data including CRUD operations, salary calculations, and analytics.",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check if the API is running and healthy."
+      }
+    },
+    {
+      "name": "Employees",
+      "description": "Endpoints for managing employee records",
+      "item": [
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \"name\": \"John Doe\",\\n  \"email\": \"john.doe@example.com\",\\n  \"jobTitle\": \"Software Engineer\",\\n  \"country\": \"US\",\\n  \"grossSalaryCents\": 10000000\\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees"]
+            },
+            "description": "Create a new employee record.\\n\\n**Required Fields:**\\n- name: String (2-100 chars)\\n- email: Valid email format\\n- jobTitle: String (2-100 chars)\\n- country: One of: US, UK, IN, CA\\n- grossSalaryCents: Integer (min: 0, max: 1000000000000)"
+          }
+        },
+        {
+          "name": "List All Employees",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (starts from 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of items per page"
+                },
+                {
+                  "key": "country",
+                  "value": "US",
+                  "description": "Filter by country code (e.g., US, UK, IN, CA)",
+                  "disabled": true
+                },
+                {
+                  "key": "jobTitle",
+                  "value": "Engineer",
+                  "description": "Filter by job title",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve a paginated list of employees with optional filtering."
+          }
+        },
+        {
+          "name": "Get Employee by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "1"]
+            },
+            "description": "Retrieve a single employee by their unique ID."
+          }
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \"name\": \"John Doe Updated\",\\n  \"jobTitle\": \"Senior Software Engineer\"\\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "1"]
+            },
+            "description": "Update an existing employee. Only include the fields you want to update."
+          }
+        },
+        {
+          "name": "Delete Employee (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "1"]
+            },
+            "description": "Soft delete an employee by ID. This sets the deleted_at timestamp but keeps the record in the database."
+          }
+        },
+        {
+          "name": "Get Deleted Employees",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/deleted",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "deleted"]
+            },
+            "description": "List all soft-deleted employees."
+          }
+        },
+        {
+          "name": "Restore Deleted Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/1/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "1", "restore"]
+            },
+            "description": "Restore a soft-deleted employee by ID."
+          }
+        },
+        {
+          "name": "Permanently Delete Employee",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/1/force",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "1", "force"]
+            },
+            "description": "Permanently delete an employee from the database. This action cannot be undone."
+          }
+        },
+        {
+          "name": "Get Employee Salary Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/1/salary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "1", "salary"]
+            },
+            "description": "Get detailed salary information including deductions and net pay for an employee."
+          }
+        },
+        {
+          "name": "Get Salary Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/salary-metrics?country=US&jobTitle=Engineer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "salary-metrics"],
+              "query": [
+                {
+                  "key": "country",
+                  "value": "US",
+                  "description": "Filter metrics by country code",
+                  "disabled": true
+                },
+                {
+                  "key": "jobTitle",
+                  "value": "Engineer",
+                  "description": "Filter metrics by job title",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get comprehensive salary metrics. Can be filtered by country and/or job title."
+          }
+        }
+      ]
+    }
+  ]
+}

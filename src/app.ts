@@ -93,7 +93,7 @@ export function createApp(): Application {
   });
 
   // API routes
-  app.use('/api/employees', createEmployeeRoutes(employeeController));
+  app.use('/api/v1/employees', createEmployeeRoutes(employeeController));
 
   // ======================
   // Error Handling

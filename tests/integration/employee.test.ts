@@ -57,11 +57,11 @@ describe('Employee API Integration Tests', () => {
     expect(columnNames).toContain('id'); // Ensure the 'id' column exists
     expect(columns.find((col: any) => col.name === 'id').pk).toBe(1); // Ensure 'id' is a primary key
   });
-  describe('POST /api/employees', () => {
+  describe('POST /api/v1/employees', () => {
     it('should create employee with valid data', async () => {
       try {
         const response = await request(app)
-          .post('/api/employees')
+          .post('/api/v1/employees')
           .send(validEmployeeData2)
           .expect(201);
 
@@ -119,7 +119,7 @@ describe('Employee API Integration Tests', () => {
 
     it('should reject duplicate email', async () => {
       // Create first employee
-      await request(app).post('/api/employees').send(validEmployeeData).expect(201);
+      await request(app).post('/api/v1/employees').send(validEmployeeData).expect(201);
 
       // Try to create with same email
       const response = await request(app)
@@ -132,22 +132,22 @@ describe('Employee API Integration Tests', () => {
     });
 
     it('should reject missing required fields', async () => {
-      const response = await request(app).post('/api/employees').send({}).expect(400);
+      const response = await request(app).post('/api/v1/employees').send({}).expect(400);
 
       expect(response.body.status).toBe('error');
       expect(response.body.message).toContain('Validation failed');
     });
   });
 
-  describe('GET /api/employees/:id', () => {
+  describe('GET /api/v1/employees/:id', () => {
     it('should get employee by id', async () => {
       // Create employee first
-      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const createResponse = await request(app).post('/api/v1/employees').send(validEmployeeData);
 
       const employeeId = createResponse.body.data.id;
 
       // Get employee
-      const response = await request(app).get(`/api/employees/${employeeId}`).expect(200);
+      const response = await request(app).get(`/api/v1/employees/${employeeId}`).expect(200);
 
       expect(response.body.status).toBe('success');
       expect(response.body.data.id).toBe(employeeId);
@@ -155,7 +155,7 @@ describe('Employee API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent employee', async () => {
-      const response = await request(app).get('/api/employees/999999');
+      const response = await request(app).get('/api/v1/employees/999999');
       // Check that the status code is 404
       expect(response.status).toBe(404);
       expect(response.body).toMatchObject({
@@ -165,31 +165,31 @@ describe('Employee API Integration Tests', () => {
     });
 
     it('should reject invalid id format', async () => {
-      const response = await request(app).get('/api/employees/invalid').expect(400);
+      const response = await request(app).get('/api/v1/employees/invalid').expect(400);
 
       expect(response.body.status).toBe('error');
     });
   });
 
-  describe('GET /api/employees', () => {
+  describe('GET /api/v1/employees', () => {
     beforeEach(async () => {
       // Create test employees
-      await request(app).post('/api/employees').send(validEmployeeData);
-      await request(app).post('/api/employees').send(validEmployeeData2);
-      await request(app).post('/api/employees').send(validEmployeeData3);
+      await request(app).post('/api/v1/employees').send(validEmployeeData);
+      await request(app).post('/api/v1/employees').send(validEmployeeData2);
+      await request(app).post('/api/v1/employees').send(validEmployeeData3);
 
       // Create and soft delete an employee
       const createResponse = await request(app)
-        .post('/api/employees')
+        .post('/api/v1/employees')
         .send({
           ...validEmployeeData,
           email: 'deleted@example.com',
         });
-      await request(app).delete(`/api/employees/${createResponse.body.data.id}`);
+      await request(app).delete(`/api/v1/employees/${createResponse.body.data.id}`);
     });
 
     it('should get all employees', async () => {
-      const response = await request(app).get('/api/employees').expect(200);
+      const response = await request(app).get('/api/v1/employees').expect(200);
 
       expect(response.body.status).toBe('success');
       expect(response.body.data).toBeInstanceOf(Array);
@@ -207,7 +207,7 @@ describe('Employee API Integration Tests', () => {
     });
 
     it('should filter employees by country', async () => {
-      const response = await request(app).get('/api/employees?country=US').expect(200);
+      const response = await request(app).get('/api/v1/employees?country=US').expect(200);
 
       expect(response.body.status).toBe('success');
       expect(response.body.data).toBeInstanceOf(Array);
@@ -217,22 +217,22 @@ describe('Employee API Integration Tests', () => {
     });
 
     it('should paginate employees', async () => {
-      const response = await request(app).get('/api/employees?page=1&limit=2').expect(200);
+      const response = await request(app).get('/api/v1/employees?page=1&limit=2').expect(200);
 
       expect(response.body.data.length).toBeLessThanOrEqual(2);
       expect(response.body.pagination.limit).toBe(2);
     });
 
     it('should reject invalid pagination params', async () => {
-      await request(app).get('/api/employees?page=abc').expect(400);
-      await request(app).get('/api/employees?limit=abc').expect(400);
+      await request(app).get('/api/v1/employees?page=abc').expect(400);
+      await request(app).get('/api/v1/employees?limit=abc').expect(400);
     });
   });
 
-  describe('PUT /api/employees/:id', () => {
+  describe('PUT /api/v1/employees/:id', () => {
     it('should update employee', async () => {
       // Create employee
-      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const createResponse = await request(app).post('/api/v1/employees').send(validEmployeeData);
 
       const employeeId = createResponse.body.data.id;
 
@@ -243,7 +243,7 @@ describe('Employee API Integration Tests', () => {
       };
 
       const response = await request(app)
-        .put(`/api/employees/${employeeId}`)
+        .put(`/api/v1/employees/${employeeId}`)
         .send(updateData)
         .expect(200);
 
@@ -255,7 +255,7 @@ describe('Employee API Integration Tests', () => {
 
     it('should return 404 for non-existent employee', async () => {
       const response = await request(app)
-        .put('/api/employees/999999')
+        .put('/api/v1/employees/999999')
         .send({ name: 'Test' })
         .expect(404);
 
@@ -264,22 +264,22 @@ describe('Employee API Integration Tests', () => {
 
     it('should reject duplicate email update', async () => {
       // Create two employees
-      const emp1 = await request(app).post('/api/employees').send(validEmployeeData);
-      await request(app).post('/api/employees').send(validEmployeeData2);
+      const emp1 = await request(app).post('/api/v1/employees').send(validEmployeeData);
+      await request(app).post('/api/v1/employees').send(validEmployeeData2);
 
       // Try to update emp1 with emp2's email
       const response = await request(app)
-        .put(`/api/employees/${emp1.body.data.id}`)
+        .put(`/api/v1/employees/${emp1.body.data.id}`)
         .send({ email: validEmployeeData2.email })
         .expect(409);
       expect(response.body.status).toBe('error');
     });
 
     it('should reject invalid update data', async () => {
-      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const createResponse = await request(app).post('/api/v1/employees').send(validEmployeeData);
 
       const response = await request(app)
-        .put(`/api/employees/${createResponse.body.data.id}`)
+        .put(`/api/v1/employees/${createResponse.body.data.id}`)
         .send({ grossSalaryCents: -1000 })
         .expect(400);
 
@@ -287,17 +287,17 @@ describe('Employee API Integration Tests', () => {
     });
   });
 
-  describe('DELETE /api/employees/:id', () => {
+  describe('DELETE /api/v1/employees/:id', () => {
     it('should soft delete employee', async () => {
       // Create employee
-      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const createResponse = await request(app).post('/api/v1/employees').send(validEmployeeData);
       const employeeId = createResponse.body.data.id;
 
       // Soft delete employee
-      await request(app).delete(`/api/employees/${employeeId}`).expect(204);
+      await request(app).delete(`/api/v1/employees/${employeeId}`).expect(204);
 
       // Verify employee is not found in normal query
-      await request(app).get(`/api/employees/${employeeId}`).expect(404);
+      await request(app).get(`/api/v1/employees/${employeeId}`).expect(404);
 
       // Verify employee exists in database with deletedAt set
       const dbEmployee = await testDb('employees').where('id', employeeId).first();
@@ -306,29 +306,29 @@ describe('Employee API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent employee', async () => {
-      const response = await request(app).delete('/api/employees/999999').expect(404);
+      const response = await request(app).delete('/api/v1/employees/999999').expect(404);
       expect(response.body.status).toBe('error');
     });
   });
 
-  describe('POST /api/employees/:id/restore', () => {
+  describe('POST /api/v1/employees/:id/restore', () => {
     it('should restore a soft-deleted employee', async () => {
       // Create and soft delete an employee
-      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const createResponse = await request(app).post('/api/v1/employees').send(validEmployeeData);
       const employeeId = createResponse.body.data.id;
-      await request(app).delete(`/api/employees/${employeeId}`);
+      await request(app).delete(`/api/v1/employees/${employeeId}`);
 
       // Restore the employee
-      await request(app).post(`/api/employees/${employeeId}/restore`).expect(200);
+      await request(app).post(`/api/v1/employees/${employeeId}/restore`).expect(200);
 
       // Verify employee is accessible again
-      const response = await request(app).get(`/api/employees/${employeeId}`).expect(200);
+      const response = await request(app).get(`/api/v1/employees/${employeeId}`).expect(200);
       expect(response.body.data.id).toBe(employeeId);
     });
 
     it('should return 404 when restoring non-existent employee', async () => {
       try {
-        const response = await request(app).post('/api/employees/999999/restore').expect(404);
+        const response = await request(app).post('/api/v1/employees/999999/restore').expect(404);
         expect(response.body.status).toBe('error');
       } catch (error) {
         console.log(error);
@@ -336,14 +336,14 @@ describe('Employee API Integration Tests', () => {
     });
   });
 
-  describe('DELETE /api/employees/:id/force', () => {
+  describe('DELETE /api/v1/employees/:id/force', () => {
     it('should permanently delete an employee', async () => {
       // Create an employee
-      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const createResponse = await request(app).post('/api/v1/employees').send(validEmployeeData);
       const employeeId = createResponse.body.data.id;
 
       // Permanently delete the employee
-      await request(app).delete(`/api/employees/${employeeId}/force`).expect(204);
+      await request(app).delete(`/api/v1/employees/${employeeId}/force`).expect(204);
 
       // Verify employee is completely removed from database
       const dbEmployee = await testDb('employees').where('id', employeeId).first();
@@ -351,15 +351,15 @@ describe('Employee API Integration Tests', () => {
     });
   });
 
-  describe('GET /api/employees/deleted', () => {
+  describe('GET /api/v1/employees/deleted', () => {
     it('should list all soft-deleted employees', async () => {
       // Create and soft delete an employee
-      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const createResponse = await request(app).post('/api/v1/employees').send(validEmployeeData);
       const employeeId = createResponse.body.data.id;
-      await request(app).delete(`/api/employees/${employeeId}`);
+      await request(app).delete(`/api/v1/employees/${employeeId}`);
 
       // Get list of deleted employees
-      const response = await request(app).get('/api/employees/deleted').expect(200);
+      const response = await request(app).get('/api/v1/employees/deleted').expect(200);
 
       expect(response.body.status).toBe('success');
       expect(response.body.data).toContainEqual(
@@ -371,15 +371,15 @@ describe('Employee API Integration Tests', () => {
     });
   });
 
-  describe('GET /api/employees/:id/salary', () => {
+  describe('GET /api/v1/employees/:id/salary', () => {
     it('should get salary details with deductions', async () => {
       // Create employee
-      const createResponse = await request(app).post('/api/employees').send(validEmployeeData);
+      const createResponse = await request(app).post('/api/v1/employees').send(validEmployeeData);
 
       const employeeId = createResponse.body.data.id;
 
       // Get salary details
-      const response = await request(app).get(`/api/employees/${employeeId}/salary`).expect(200);
+      const response = await request(app).get(`/api/v1/employees/${employeeId}/salary`).expect(200);
 
       expect(response.body.status).toBe('success');
       expect(response.body.data).toMatchObject({
@@ -394,20 +394,20 @@ describe('Employee API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent employee', async () => {
-      await request(app).get('/api/employees/999999/salary').expect(404);
+      await request(app).get('/api/v1/employees/999999/salary').expect(404);
     });
   });
 
-  describe('GET /api/employees/salary-metrics', () => {
+  describe('GET /api/v1/employees/salary-metrics', () => {
     beforeEach(async () => {
       // Create test employees with different countries and job titles
-      await request(app).post('/api/employees').send(validEmployeeData);
-      await request(app).post('/api/employees').send(validEmployeeData2);
-      await request(app).post('/api/employees').send(validEmployeeData3);
+      await request(app).post('/api/v1/employees').send(validEmployeeData);
+      await request(app).post('/api/v1/employees').send(validEmployeeData2);
+      await request(app).post('/api/v1/employees').send(validEmployeeData3);
     });
 
     it('should get combined salary metrics', async () => {
-      const response = await request(app).get('/api/employees/salary-metrics').expect(200);
+      const response = await request(app).get('/api/v1/employees/salary-metrics').expect(200);
 
       expect(response.body.status).toBe('success');
       expect(response.body.data).toEqual({
@@ -440,7 +440,7 @@ describe('Employee API Integration Tests', () => {
 
     it('should filter metrics by country', async () => {
       const response = await request(app)
-        .get('/api/employees/salary-metrics?country=US')
+        .get('/api/v1/employees/salary-metrics?country=US')
         .expect(200);
 
       // Should only have US in country metrics
@@ -457,7 +457,7 @@ describe('Employee API Integration Tests', () => {
     it('should filter metrics by job title', async () => {
       const response = await request(app)
         .get(
-          `/api/employees/salary-metrics?jobTitle=${encodeURIComponent(validEmployeeData.jobTitle)}`
+          `/api/v1/employees/salary-metrics?jobTitle=${encodeURIComponent(validEmployeeData.jobTitle)}`
         )
         .expect(200);
 
@@ -473,7 +473,7 @@ describe('Employee API Integration Tests', () => {
     it('should filter by both country and job title', async () => {
       const response = await request(app)
         .get(
-          `/api/employees/salary-metrics?country=US&jobTitle=${encodeURIComponent(validEmployeeData.jobTitle)}`
+          `/api/v1/employees/salary-metrics?country=US&jobTitle=${encodeURIComponent(validEmployeeData.jobTitle)}`
         )
         .expect(200);
 
@@ -487,7 +487,7 @@ describe('Employee API Integration Tests', () => {
 
     it('should return empty arrays when no data matches filters', async () => {
       const response = await request(app)
-        .get('/api/employees/salary-metrics?country=XX&jobTitle=Nonexistent')
+        .get('/api/v1/employees/salary-metrics?country=XX&jobTitle=Nonexistent')
         .expect(200);
 
       expect(response.body.data.byCountry).toHaveLength(0);
