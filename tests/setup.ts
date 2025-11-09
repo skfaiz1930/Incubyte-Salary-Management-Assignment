@@ -8,6 +8,6 @@
  */
 
 // Set test environment
-process.env.NODE_ENV = 'test';
-process.env.DATABASE_PATH = ':memory:';
-process.env.LOG_LEVEL = 'silent';
+process.env.NODE_ENV = 'development';
+process.env.DATABASE_PATH = 'data/employees.db';
+process.env.LOG_LEVEL = 'info';

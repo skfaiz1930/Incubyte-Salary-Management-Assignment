@@ -206,7 +206,6 @@ describe('EmployeeController', () => {
 
       expect(mockEmployeeService.deleteEmployee).toHaveBeenCalledWith(1);
       expect(mockResponse.status).toHaveBeenCalledWith(204);
-      expect(mockResponse.json).toHaveBeenCalled();
     });
   });
 

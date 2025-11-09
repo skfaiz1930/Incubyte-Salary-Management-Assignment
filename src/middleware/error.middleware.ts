@@ -8,8 +8,8 @@
  * @module middleware/error
  */
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../utils/errors';
 import logger from '../utils/logger';
+import { AppError } from '../utils/errors';
 
 /**
  * Global error handling middleware
@@ -39,8 +39,13 @@ export const errorHandler = (
   });
 
   // Handle known operational errors
-  if (err instanceof AppError) {
-    res.status(err.statusCode).json({
+  if (
+    err instanceof AppError ||
+    (err as any).name === 'AppError' ||
+    (err as any).name === 'NotFoundError'
+  ) {
+    const statusCode = (err as any).statusCode || 500;
+    res.status(statusCode).json({
       status: 'error',
       message: err.message,
     });
@@ -49,8 +54,7 @@ export const errorHandler = (
 
   // Handle unexpected errors
   // Never expose internal error details in production
-  const message =
-    process.env.NODE_ENV === 'development' ? err.message : 'Internal server error';
+  const message = process.env.NODE_ENV === 'development' ? err.message : 'Internal server error';
 
   res.status(500).json({
     status: 'error',
@@ -65,6 +69,6 @@ export const errorHandler = (
 export const notFoundHandler = (req: Request, res: Response): void => {
   res.status(404).json({
     status: 'error',
-    message: `Route ${req.method} ${req.path} not found`,
+    message: `Route ${req.method} ${req.path || req.url || req.originalUrl} not found`,
   });
 };

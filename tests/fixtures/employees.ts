@@ -10,7 +10,7 @@ import { CreateEmployeeData } from '../../src/models/employee.model';
 
 export const validEmployeeData: CreateEmployeeData = {
   name: 'John Doe',
-  email: 'john.doe@example.com',
+  email: 'john.doee@example.com',
   jobTitle: 'Software Engineer',
   country: 'US',
   grossSalaryCents: 10000000, // $100,000.00
@@ -18,7 +18,7 @@ export const validEmployeeData: CreateEmployeeData = {
 
 export const validEmployeeData2: CreateEmployeeData = {
   name: 'Jane Smith',
-  email: 'jane.smith@example.com',
+  email: 'jane.smithh@example.com',
   jobTitle: 'Product Manager',
   country: 'UK',
   grossSalaryCents: 15000000, // $150,000.00

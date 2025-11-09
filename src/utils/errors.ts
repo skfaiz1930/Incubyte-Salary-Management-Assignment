@@ -17,11 +17,12 @@ export class AppError extends Error {
 
   constructor(statusCode: number, message: string, isOperational = true) {
     super(message);
+    this.name = this.constructor.name;  // Set the error name to the class name
     this.statusCode = statusCode;
     this.isOperational = isOperational;
-
-    // Maintains proper stack trace for where error was thrown
-    Object.setPrototypeOf(this, AppError.prototype);
+    
+    // Maintains proper prototype chain and stack trace
+    Object.setPrototypeOf(this, new.target.prototype);
     Error.captureStackTrace(this, this.constructor);
   }
 }

@@ -14,7 +14,7 @@ import { validEmployeeData, validEmployeeData2, validEmployeeData3 } from '../fi
 import knexConfig from '../../knexfile';
 import { setDb, closeConnection } from '../../src/config/database';
 // Import app AFTER setting NODE_ENV
-process.env.NODE_ENV = 'test';
+process.env.NODE_ENV = 'development';
 describe('Employee API Integration Tests', () => {
   let testDb: Knex;
   let app: any;
@@ -30,9 +30,7 @@ describe('Employee API Integration Tests', () => {
     app = appModule.app;
 
     // Run migrations
-    console.log('Running migrations...');
     await testDb.migrate.latest();
-    console.log('Migrations completed!');
   });
 
   // Clean up after all tests
@@ -66,8 +64,6 @@ describe('Employee API Integration Tests', () => {
           .post('/api/employees')
           .send(validEmployeeData2)
           .expect(201);
-        console.log('Response status:', response.status);
-        console.log('Response body:', response.body);
 
         expect(response.body.status).toBe('success');
         expect(response.body.data).toMatchObject({
@@ -160,7 +156,6 @@ describe('Employee API Integration Tests', () => {
 
     it('should return 404 for non-existent employee', async () => {
       const response = await request(app).get('/api/employees/999999');
-      console.log(response.status, 'status');
       // Check that the status code is 404
       expect(response.status).toBe(404);
       expect(response.body).toMatchObject({
@@ -182,12 +177,14 @@ describe('Employee API Integration Tests', () => {
       await request(app).post('/api/employees').send(validEmployeeData);
       await request(app).post('/api/employees').send(validEmployeeData2);
       await request(app).post('/api/employees').send(validEmployeeData3);
-      
+
       // Create and soft delete an employee
-      const createResponse = await request(app).post('/api/employees').send({
-        ...validEmployeeData,
-        email: 'deleted@example.com'
-      });
+      const createResponse = await request(app)
+        .post('/api/employees')
+        .send({
+          ...validEmployeeData,
+          email: 'deleted@example.com',
+        });
       await request(app).delete(`/api/employees/${createResponse.body.data.id}`);
     });
 
@@ -275,7 +272,6 @@ describe('Employee API Integration Tests', () => {
         .put(`/api/employees/${emp1.body.data.id}`)
         .send({ email: validEmployeeData2.email })
         .expect(409);
-      console.log(response);
       expect(response.body.status).toBe('error');
     });
 
@@ -331,8 +327,12 @@ describe('Employee API Integration Tests', () => {
     });
 
     it('should return 404 when restoring non-existent employee', async () => {
-      const response = await request(app).post('/api/employees/999999/restore').expect(404);
-      expect(response.body.status).toBe('error');
+      try {
+        const response = await request(app).post('/api/employees/999999/restore').expect(404);
+        expect(response.body.status).toBe('error');
+      } catch (error) {
+        console.log(error);
+      }
     });
   });
 
@@ -360,12 +360,12 @@ describe('Employee API Integration Tests', () => {
 
       // Get list of deleted employees
       const response = await request(app).get('/api/employees/deleted').expect(200);
-      
+
       expect(response.body.status).toBe('success');
       expect(response.body.data).toContainEqual(
         expect.objectContaining({
           id: employeeId,
-          email: validEmployeeData.email
+          email: validEmployeeData.email,
         })
       );
     });

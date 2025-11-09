@@ -19,7 +19,6 @@ export class EmployeeController {
    * Create a new employee
    */
   create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-
     try {
       const data: CreateEmployeeInput = req.body;
       const employee = await this.employeeService.createEmployee(data);
@@ -127,14 +126,14 @@ export class EmployeeController {
 
       if (!restored) {
         res.status(404).json({
-          status: 'fail',
+          status: 'error',
           message: 'No soft-deleted employee found with that ID',
         });
         return;
       }
 
       const employee = await this.employeeService.getEmployeeById(id);
-      
+
       res.status(200).json({
         status: 'success',
         data: employee,
@@ -155,7 +154,7 @@ export class EmployeeController {
 
       if (!deleted) {
         res.status(404).json({
-          status: 'fail',
+          status: 'error',
           message: 'No employee found with that ID',
         });
         return;
@@ -174,7 +173,6 @@ export class EmployeeController {
   getDeleted = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const deletedEmployees = await this.employeeService.getDeletedEmployees();
-      
       res.status(200).json({
         status: 'success',
         results: deletedEmployees.length,
@@ -210,7 +208,9 @@ export class EmployeeController {
   getMetricsByCountry = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { country } = req.query;
-      const metrics = await this.employeeService.getSalaryMetricsByCountry(country as string | undefined);
+      const metrics = await this.employeeService.getSalaryMetricsByCountry(
+        country as string | undefined
+      );
 
       res.status(200).json({
         status: 'success',
@@ -225,14 +225,12 @@ export class EmployeeController {
    * GET /api/employees/metrics/by-job-title
    * Get salary metrics grouped by job title
    */
-  getMetricsByJobTitle = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
+  getMetricsByJobTitle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { jobTitle } = req.query;
-      const metrics = await this.employeeService.getSalaryMetricsByJobTitle(jobTitle as string | undefined);
+      const metrics = await this.employeeService.getSalaryMetricsByJobTitle(
+        jobTitle as string | undefined
+      );
 
       res.status(200).json({
         status: 'success',

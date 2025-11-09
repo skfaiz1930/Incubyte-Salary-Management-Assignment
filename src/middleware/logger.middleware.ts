@@ -19,7 +19,7 @@ import logger from '../utils/logger';
 export const httpLogger = pinoHttp({
   logger,
   autoLogging: true,
-  customLogLevel: (req, res, err) => {
+  customLogLevel: (_req, res, err) => {
     if (res.statusCode >= 400 && res.statusCode < 500) {
       return 'warn';
     }
@@ -28,10 +28,10 @@ export const httpLogger = pinoHttp({
     }
     return 'info';
   },
-  customSuccessMessage: (req, res) => {
-    return `${req.method} ${req.url} completed with ${res.statusCode}`;
+  customSuccessMessage: (_req, res) => {
+    return `${_req.method} ${_req.url} completed with ${res.statusCode}`;
   },
-  customErrorMessage: (req, res, err) => {
-    return `${req.method} ${req.url} failed with ${res.statusCode}: ${err.message}`;
+  customErrorMessage: (_req, res, err) => {
+    return `${_req.method} ${_req.url} failed with ${res.statusCode}: ${err.message}`;
   },
 });

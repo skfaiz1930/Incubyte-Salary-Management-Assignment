@@ -38,6 +38,12 @@ export function createEmployeeRoutes(controller: EmployeeController): Router {
   router.get('/', validate(paginationSchema), controller.getAll);
 
   /**
+   * GET /api/employees/deleted
+   * Get all soft-deleted employees
+   */
+  router.get('/deleted', controller.getDeleted);
+
+  /**
    * GET /api/employees/:id
    * Get employee by ID
    */
@@ -66,12 +72,6 @@ export function createEmployeeRoutes(controller: EmployeeController): Router {
    * Permanently delete an employee (hard delete)
    */
   router.delete('/:id/force', validate(employeeIdSchema), controller.forceDelete);
-
-  /**
-   * GET /api/employees/deleted
-   * Get all soft-deleted employees
-   */
-  router.get('/deleted', controller.getDeleted);
 
   /**
    * GET /api/employees/:id/salary

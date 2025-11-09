@@ -22,7 +22,7 @@ const config = {
 
   database: {
     client: process.env.DATABASE_CLIENT || 'sqlite3',
-    path: process.env.DATABASE_PATH || path.join(process.cwd(), 'data', 'employees.db'),
+    path: path.join(process.cwd(), 'data', 'employees.db'),
   },
 
   security: {
@@ -41,8 +41,7 @@ const config = {
  */
 export function validateConfig(): void {
   const required = ['NODE_ENV', 'PORT'];
-  const missing = required.filter((key) => !process.env[key] && !config.env);
-
+  const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
